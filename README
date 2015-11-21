@@ -1,0 +1,15 @@
+java -cp VoteBot.jar de.dogcraft.irc.CAcertVoteBot -u -h irc.cacert.org -p 13700 --nick VoteBot
+
+This source code can be used as VoteAuditor:
+java -Dauditor.target.nick=VoteBot -cp VoteBot.jar de.dogcraft.irc.CAcertVoteAuditor -u -h irc.cacert.org -p 13700 --nick VoteBotAuditor
+
+You can connect with ssl by removing "-u"
+Target channels can be changed with
+-Dauditor.target.voteChn=vote
+or:
+-DvoteBot.voteChn=vote
+-DvoteBot.meetingChn=agm
+
+Timeouts can be changed with:
+-DvoteBot.warnSecs=90
+-DvoteBot.timeoutSecs=120
