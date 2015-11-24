@@ -102,10 +102,6 @@ public class IRCClient {
         HashMap<String, PrintWriter> logs = new HashMap<String, PrintWriter>();
 
         private void log(String chn, String l) throws IOException {
-            if ( true ) {
-                return;
-            }
-
             PrintWriter log = logs.get(chn);
 
             if (log == null) {
