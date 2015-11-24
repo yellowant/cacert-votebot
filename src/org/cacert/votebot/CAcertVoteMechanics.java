@@ -8,11 +8,11 @@ import java.util.Map.Entry;
  */
 public class CAcertVoteMechanics {
 
-    public enum VoteType {
+    public static enum VoteType {
         AYE, NAYE, ABSTAIN
     }
 
-    public enum State {
+    public static enum State {
         RUNNING, IDLE
     }
 
