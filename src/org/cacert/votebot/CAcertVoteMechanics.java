@@ -1,7 +1,10 @@
 package org.cacert.votebot;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Reprenents the voting-automata for voting in IRC chanenls.
@@ -22,6 +25,15 @@ public class CAcertVoteMechanics {
 
     String topic;
 
+    /**
+     * A set of space seprated "holder" "target" proxy pairs.
+     */
+    Set<String> proxies;
+
+    HashMap<String, VoteType> votes = new HashMap<>();
+
+    HashSet<String> inVote = new HashSet<>();
+
     private String vote(String voter, String actor, VoteType type) {
         votes.put(voter, type);
 
@@ -31,8 +43,6 @@ public class CAcertVoteMechanics {
             return "Thanks " + actor + " I count your vote for " + voter + " as " + type;
         }
     }
-
-    HashMap<String, VoteType> votes = new HashMap<>();
 
     private String voteError(String actor) {
         return "Sorry " + actor + ", I did not understand your vote, your current vote state remains unchanged!";
@@ -61,11 +71,21 @@ public class CAcertVoteMechanics {
         String voter = actor;
         String value = null;
 
-        if (txt.toLowerCase().matches("^\\s*proxy\\s.*")) {
+        if (txt.toLowerCase().matches("^proxy\\s.*")) {
             String[] parts = txt.split("\\s+");
             if (parts.length == 3) {
                 voter = parts[1];
                 value = parts[2];
+            } else {
+                return "Sorry " + actor + ", but your proxy line was syntactically incorrect.";
+            }
+            System.out.println(inVote);
+            System.out.println(voter);
+            if (inVote.contains(voter)) {
+                return "Sorry " + actor + ", your proxy is invalid. " + voter + " is currently online in this channel.";
+            }
+            if (proxies != null && !proxies.contains(actor + " " + voter)) {
+                return "Sorry " + actor + ", you do not hold a proxy for " + voter + ".";
             }
         } else {
             value = txt.replaceAll("^\\s*|\\s*$", "");
@@ -168,4 +188,32 @@ public class CAcertVoteMechanics {
         return votes.toString();
     }
 
+    public void joinedVote(String cleanReferent) {
+        System.out.println("joined: " + cleanReferent);
+        inVote.add(cleanReferent);
+    }
+
+    public void renamed(String source, String target) {
+        if (inVote.remove(source)) {
+            inVote.add(target);
+        }
+    }
+
+    public void leaveVote(String cleanReferent) {
+        inVote.add(cleanReferent);
+    }
+
+    public synchronized boolean setProxies(Set<String> set) {
+        if (state != State.IDLE) {
+            return false;
+        } else {
+            if (set == null) {
+                proxies = null;
+            } else {
+                proxies = Collections.unmodifiableSet(set);
+            }
+            return true;
+
+        }
+    }
 }

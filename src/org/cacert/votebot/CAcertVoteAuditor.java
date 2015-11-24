@@ -2,6 +2,7 @@ package org.cacert.votebot;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,6 +29,8 @@ public class CAcertVoteAuditor extends IRCBot {
     String[] capturedResults = new String[VoteType.values().length];
 
     int ctr = -1;
+
+    HashSet<String> proxyList;
 
     @Override
     public synchronized void publicMessage(String from, String channel, String message) {
@@ -66,6 +69,17 @@ public class CAcertVoteAuditor extends IRCBot {
                     System.out.println("detected vote-end. Reading results");
 
                     ctr = 0;
+                } else if (message.startsWith("PROXY LIST:")) {
+                    proxyList = new HashSet<>();
+                } else if (message.startsWith("proxy ")) {
+                    proxyList.add(message.substring(6));
+                } else if (message.startsWith("END PROXY LIST.")) {
+                    mech.setProxies(proxyList);
+                    System.out.println("Proxies: " + proxyList);
+                } else if (message.startsWith("PROXY UNRESTRICTED.")) {
+                    proxyList = null;
+                    mech.setProxies(proxyList);
+                    System.out.println("Proxies: " + proxyList);
                 }
             } else {
                 if (ctr != -1) {
@@ -87,12 +101,22 @@ public class CAcertVoteAuditor extends IRCBot {
 
     @Override
     public synchronized void join(String cleanReferent, String chn) {
-
+        if (chn.equals(voteAuxChn)) {
+            mech.joinedVote(cleanReferent);
+        }
     }
 
     @Override
     public synchronized void part(String cleanReferent, String chn) {
+        if (chn.equals(voteAuxChn)) {
+            mech.leaveVote(cleanReferent);
+        }
 
+    }
+
+    @Override
+    public void renamed(String source, String target) {
+        mech.renamed(source, target);
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {

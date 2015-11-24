@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.Semaphore;
@@ -42,8 +43,9 @@ public class IRCClient {
                     if (l.startsWith("PING ")) {
                         System.out.println("PONG");
                         out.println("PONG " + l.substring(5));
+                        continue;
                     }
-
+                    System.out.println(l);
                     String referent = "";
 
                     if (l.startsWith(":")) {
@@ -77,6 +79,19 @@ public class IRCClient {
                         String chn = command[1];
                         targetBot.part(cleanReferent(referent), chn);
                         log(chn, fullline);
+                    } else if (command[0].equals("NICK")) {
+                        targetBot.renamed(cleanReferent(referent), command[1]);
+                    } else if (command[0].equals("353")) {
+                        System.out.println(l);
+                        String[] parts = command[2].split(" ", 2);
+                        parts = parts[1].split(" ", 2);
+                        String[] names = parts[1].substring(1).split(" ");
+                        System.out.println("names of " + parts[0] + ": " + Arrays.toString(names));
+                        for (String name : names) {
+                            targetBot.join(name, parts[0].substring(1));
+                        }
+                    } else if (command[0].equals("366")) {
+                        System.out.println("names-end: " + command[2].split(" ")[0]);
                     } else {
                         System.out.println("unknown line: ");
                         System.out.println(l);
@@ -96,7 +111,7 @@ public class IRCClient {
                 return "unknown";
             }
 
-            return parts[0];
+            return parts[0].substring(1);
         }
 
         HashMap<String, PrintWriter> logs = new HashMap<String, PrintWriter>();
@@ -157,7 +172,9 @@ public class IRCClient {
         }
 
         if (ssl) {
-            s = SSLSocketFactory.getDefault().createSocket(server, port);//default-ssl = 7000
+            s = SSLSocketFactory.getDefault().createSocket(server, port);// default-ssl
+                                                                         // =
+                                                                         // 7000
             // default-ssl = 7000
         } else {
             s = new Socket(server, port);
@@ -174,6 +191,8 @@ public class IRCClient {
 
         loggedin.acquire();
     }
+
+    HashMap<String, HashSet<String>> tmpProxies = new HashMap<>();
 
     HashSet<String> joined = new HashSet<String>();
 

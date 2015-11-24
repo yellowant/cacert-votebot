@@ -8,8 +8,7 @@ public abstract class IRCBot {
         this.c = c;
     }
 
-    public abstract void publicMessage(String from, String channel,
-            String message);
+    public abstract void publicMessage(String from, String channel, String message);
 
     public abstract void privateMessage(String from, String message);
 
@@ -25,4 +24,5 @@ public abstract class IRCBot {
 
     public abstract void join(String cleanReferent, String chn);
 
+    public abstract void renamed(String source, String target);
 }
