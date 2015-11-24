@@ -20,8 +20,6 @@ public class IRCClient {
 
     private Socket s;
 
-    private String nick;
-
     class ServerReader implements Runnable {
 
         private BufferedReader br;
@@ -226,8 +224,6 @@ public class IRCClient {
     }
 
     public static IRCClient parseCommandLine(String[] commandLine, String nick) throws IOException, InterruptedException {
-        this.nick = nick;
-
         String host = null;
         int port = 7000;
         boolean ssl = true;
